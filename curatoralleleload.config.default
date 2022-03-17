@@ -1,0 +1,113 @@
+#format: sh
+#
+#  Configuration for curatoralleleload
+#
+#  This file sets up environment variables that are needed for a 
+#  Curator Allele load
+#
+###########################################################################
+
+#
+#  If the MGICONFIG environment variable does not have a local override,
+#  use the default "live" settings.
+#
+if [ "${MGICONFIG}" = "" ]
+then
+    MGICONFIG=/usr/local/mgi/live/mgiconfig
+    export MGICONFIG
+fi
+
+CONFIG_MASTER=${MGICONFIG}/master.config.sh
+
+export CONFIG_MASTER
+
+. ${CONFIG_MASTER}
+
+# Full path the the logs, reports, and archive directories 
+FILEDIR=${DATALOADSOUTPUT}/mgi/curatoralleleload
+
+# Full path to the input, output, logs, reports and archive directories.
+INPUTDIR=${FILEDIR}/input
+LOGDIR=${FILEDIR}/logs
+RPTDIR=${FILEDIR}/reports
+OUTPUTDIR=${FILEDIR}/output
+ARCHIVEDIR=${FILEDIR}/archive
+
+export INPUTDIR FILEDIR LOGDIR RPTDIR OUTPUTDIR ARCHIVEDIR
+
+# Full path name of the input file
+INPUT_FILE_DEFAULT="${INPUTDIR}/curatoralleleload.txt"
+
+export INPUT_FILE_DEFAULT
+
+# Full path name of the BCP files
+ALLELE_BCP=${OUTPUTDIR}/ALL_Allele.bcp
+PROPERTY_BCP=${OUTPUTDIR}/MGI_Relationship_Property.bcp
+NOTE_BCP=${OUTPUTDIR}/MGI_Note.bcp
+
+export RELATIONSHIP_BCP PROPERTY_BCP NOTE_BCP
+
+# Full path to the sanity/QC reports.
+#
+SANITY_RPT=${RPTDIR}/sanity.rpt
+QC_RPT=${RPTDIR}/qc.rpt
+WARNING_RPT=${RPTDIR}/warning.rpt
+QC_LOGFILE=${LOGDIR}/curatoralleleQC.log
+
+export SANITY_RPT QC_RPT WARNING_RPT QC_LOGFILE
+
+
+#
+# For sanity checks
+#
+
+# Number of columns expected for the input file (for sanity check).
+NUM_COLUMNS=23
+
+# minimum # lines in input (including header)
+MIN_LINES=2
+
+export NUM_COLUMNS MIN_LINES
+
+TEMP_TABLE=WORK
+TEMP_BCP=work.bcp
+
+export TEMP_TABLE WORK_BCP
+
+# Full path to QC/sanity scripts.
+#
+LOAD_QC=${CURATORALLELELOAD}/bin/curatoralleleQC.py
+LOAD_QC_SH=${CURATORALLELELOAD}/bin/curatoralleleQC.sh
+
+export LOAD_QC LOAD_QC_SH
+
+#  Full path name of the log files
+LOG_PROC=${LOGDIR}/curatoralleleload.proc.log
+LOG_DIAG=${LOGDIR}/curatoralleleload.diag.log
+LOG_CUR=${LOGDIR}/curatoralleleload.cur.log
+LOG_VAL=${LOGDIR}/curatoralleleload.val.log
+
+export LOG_PROC LOG_DIAG LOG_CUR LOG_VAL
+
+# this load's login value for jobstream 
+JOBSTREAM=curatoralleleload
+
+export JOBSTREAM
+
+# add or delete_reload
+LOAD_MODE=delete_reload
+
+export LOAD_MODE
+
+###########################################################################
+#  The name of the load for the subject of an email notification
+# will be set by wrapper based on collection for each load
+MAIL_LOADNAME="Curator Allele Load"
+
+export MAIL_LOADNAME
+
+#  INSTALLDIR expected by dlautils/DLAInstall
+INSTALLDIR=${CURATORALLELELOAD}
+
+export INSTALLDIR
+

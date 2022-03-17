@@ -1,0 +1,156 @@
+
+
+                      Lines Duplicated                      
+Line#         Line                
+------------  --------------------
+6  Tg(Apoe-test)4test	transgene insertion 4, test	MGI:2158399	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Gene ID: Passes	
+
+
+              Missing Data in Required Columns              
+Line#         Line                
+------------  --------------------
+2  Tg(Apoe-test)6test		MGI:2158399	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Allele name: null	
+
+3  	transgene insertion 6.1, test	MGI:2158399	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Gene ID: null	
+
+4  Tg(Apoe-test)6.2test	transgene insertion 6.2, test		mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Gene ID: null	
+
+14  Tg(Brtr-test)1.2test	transgene insertion 1.2, test	MGI:2158399		Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		User: Null	
+
+17  Apoe<tm25.2test>	targeted mutation 25.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable		Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Germline transmission: Null	
+
+
+                      Invalid Gene ID                       
+Line#         Line                
+------------  --------------------
+4  Tg(Apoe-test)6.2test	transgene insertion 6.2, test		mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Gene ID: null	
+
+7  Tg(Apoe-test)4.2test	transgene insertion 4.2, test	MGI:FAIL	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Gene ID: Invalid	* withdrawn markers have no MGI IDs cannot test that
+
+
+                     Invalid User Login                     
+Line#         Line                
+------------  --------------------
+13  Tg(Brtr-test)1.1test	transgene insertion 1.1, test	MGI:2158399	mnkA	Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		User: Invalid	
+
+14  Tg(Brtr-test)1.2test	transgene insertion 1.2, test	MGI:2158399		Reserved	Transgenic	Not Applicable	Not Applicable	Not Specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		User: Null	
+
+
+                    Invalid Allele Type                     
+Line#         Line                
+------------  --------------------
+25  Apoe<tm33.1test>	targeted mutation 33.1, test	MGI:88057	mnk	In Progress	targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Allele type: Case mismatch	
+
+26  Apoe<tm33.2test>	targeted mutation 33.2, test	MGI:88057	mnk	In Progress	FAIL	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Allele type: Invalid	
+
+
+                   Invalid Allele Status                    
+Line#         Line                
+------------  --------------------
+9  Apoe<tm23.2test>	targeted mutation 23.2, test	MGI:88057	mnk	In progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Allele status: Case mis-match	
+
+10  Apoe<tm23.3test>	targeted mutation 23.3, test	MGI:88057	mnk	FAIL	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Allele status: Invalid	
+
+
+                  Invalid Inheritance Mode                  
+Line#         Line                
+------------  --------------------
+20  Apoe<tm24.2test>	targeted mutation 24.2, test	MGI:88057	mnk	Reserved	Targeted	recessive	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Inheritance mode: Case mismatch	
+
+21  Apoe<tm24.3test>	targeted mutation 24.3, test	MGI:88057	mnk	Reserved	Targeted	FAIL	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Inheritance mode: Invalid	
+
+22  Apoe<tm24.4test>	targeted mutation 24.4, test	MGI:88057	mnk	Reserved	Targeted	Other (see note)	Germline	Not Specified	test	none			J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Inheritance mode: no note	
+
+
+                Invalid Allele Transmission                 
+Line#         Line                
+------------  --------------------
+16  Apoe<tm25.1test>	targeted mutation 25.1, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Germline transmission: Absent	
+
+18  Apoe<tm25.3test>	targeted mutation 25.3, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	FAIL	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Germline transmission: Invalid	
+
+
+                     Invalid Collection                     
+Line#         Line                
+------------  --------------------
+38  Tg(Apoe-test)4.2test	transgene insertion 5.2, test	MGI:2158399	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	Not specified	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Allele collection: Case mismatch	
+
+39  Tg(Apoe-test)4.3test	transgene insertion 5.3, test	MGI:2158399	mnk	Reserved	Transgenic	Not Applicable	Not Applicable	FAIL	test	test	test		J:123456		J:123456			FVB		Tgtest	Inserted expressed sequence	Insertion		Allele collection: Invalid	
+
+
+                 Invalid Original Reference                 
+Line#         Line                
+------------  --------------------
+32  Apoe<tm12.2test>	targeted mutation 12.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:1234569	J:123456	J:123456		AC1	129/Sv			Null/knockout|Reporter	Insertion		Original ref: Invalid	
+
+
+                 Missing Original Reference                 
+Line#         Line                
+------------  --------------------
+33  Apoe<tm12.3test>	targeted mutation 12.3, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test			J:123456	J:123456		AC1	129/Sv			Null/knockout|Reporter	Insertion		Original ref: Null	
+
+
+               Invalid Transmission Reference               
+Line#         Line                
+------------  --------------------
+36  Apoe<tm28.2test>	targeted mutation 28.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	FAIL	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Transmission ref: Invalid	
+
+
+                Invalid Molecular Reference                 
+Line#         Line                
+------------  --------------------
+30  Apoe<tm29.2test>	targeted mutation 29.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	FAIL		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Molecular ref: Invalid	
+
+
+                  Invalid Index Reference                   
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+66  Apoe<tm30.1test>	targeted mutation 30.1, test	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456	FAIL	2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Indexed ref: Invalid	
+
+67  Apoe<tm30.2test>	targeted mutation 30.2, test	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456	J:123456|FAIL	2A	129S1/SvImJ			Null/knockout|Reporter	Insertion		Indexed ref: Invalid second ref	
+
+
+                  Invalid Parent Cell Line                  
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+56  Apoe<tm18.1test>	targeted mutation 18.1, test	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		FAIL	129S1/SvImJ			Null/knockout|Reporter	Insertion		PCL: Invalid 	
+
+58  Apoe<tm18.3test>	targeted mutation 18.3, test	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		Not specified				Null/knockout|Reporter	Insertion		PCL: case mismatch	
+
+
+                  Invalid Strain of Origin                  
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+62  Apoe<tm19.1test>	targeted mutation 19.1, test	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJFail			Null/knockout|Reporter	Insertion		SOO: Invalid and doesn't match PCL	
+
+
+                  Invalid Mutant Cell Line                  
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+41  Apoe<tm1a.2(KOMP)Wtsi>	targeted mutation 1a.2, Wellcome Trust Sanger Institute	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		JM8A1.N3	C57BL/6N-A<tm1Brd>	FAIL		Null/knockout|Reporter	Insertion		MCL: Invalid	
+
+43  Apoe<tm1a.4(KOMP)Wtsi>	targeted mutation 1a.4, Wellcome Trust Sanger Institute	MGI:88057	mnk	Approved	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		JM8A1.N3	C57BL/6N-A<tm1Brd>	EPD0357_5_E10|FAIL		Null/knockout|Reporter	Insertion		MCL: multiple, second invalid	
+
+
+                   Invalid Allele Subtype                   
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+51  Apoe<tm34.1test>	targeted mutation 34.1, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			FAIL	Insertion		Allele subtype: Invalid	
+
+52  Apoe<tm34.2test>	targeted mutation 34.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			null/knockout|Reporter	Insertion		Allele subtype: case mismatch	
+
+53  Apoe<tm34.3test>	targeted mutation 34.3, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|reporter	Insertion		Allele subtype: case mismatch on second term	
+
+54  Apoe<tm34.4test>	targeted mutation 34.4, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|FAIL	Insertion		Allele subtype: Invalid on second term	
+
+
+                 Invalid Molecular Mutation                 
+Line#         Line                                                                 
+------------  --------------------------------------------------------------------
+46  Apoe<tm22.1test>	targeted mutation 22.1, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	FAIL		Molecular mutation: Invalid	
+
+47  Apoe<tm22.2test>	targeted mutation 22.2, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	insertion		Molecular mutation: case mismatch	
+
+48  Apoe<tm22.3test>	targeted mutation 22.3, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion|duplication		Molecular mutation: case mismatch on second term	
+
+49  Apoe<tm22.4test>	targeted mutation 22.4, test	MGI:88057	mnk	In Progress	Targeted	Not Applicable	Germline	Not Specified	test	none	test		J:123456	J:123456	J:123456		2A	129S1/SvImJ			Null/knockout|Reporter	Insertion|FAIL		Molecular mutation: Invalid on second term	

@@ -1,0 +1,81 @@
+If SOO is Null # row 2
+    report, skip, continue
+
+if TAR/GT # rows 4/5a
+    if MCL is null or PCL is null
+	report, skip, continue
+
+if EM # rows 4/5b
+    if MCL not null or PCL not null # if there is one check there is both
+	if not (MCL not null and PCL not null) # must have both
+	    report, skip, contine
+
+If not(TAR/GT/EM) # rows 7/8
+    if MCL or PCL
+	report, skip, continue
+
+If TAR/GT/EM 
+    if MCL not(null/NS) 
+	if verifies
+  	    if PCL not(null/NS/OSN):# row 10
+	        use input values for MCL, PCL, SOO, and use the corresponding Derivation.				
+		continue
+            if PCL NS # row 12
+		use input value for MCL, for PCL, 
+		if SOO is either "129" or "129S/SvEv" 
+		     use corresponding "Not Specified" PCL (_cellline_keys 1098, 40245)
+		     and corresponding Derivation for Allele Type.  
+		     continue
+		else # if SOO is any other strain, 
+		     then for PCL use generic "Not Specified" (cellline key = -1) 
+		     and corresponding Derivation for Allele Type.
+		     continue
+	    else
+	        report, skip, continue
+	    if PCL OSN # row 13
+	        if not (general note)
+		    report, skip, continue	
+	        if verifies
+	  	    use input value for MCL 
+		    if SOO is either "129" or "129P2/OlaHsd" or "129S5/SvEvBrd" 
+		        use corresponding "Other (see notes)" PCL (_cellline_keys 1101, 40248, 40255), 
+		        and corresponding Derivation for Allele Type.  
+		        continue
+		    else # If SOO is any other strain
+		        then for PCL use generic "Other (see notes)" (cellline key = 1069) 
+		        and corresponding Derivation for Allele Type.
+		        continue
+	        else
+		    report, skip, continue
+    if MCL NS
+	if verifies
+	    if PCL not(null/NS/OSN)
+		create new "Not Specified" MCL for the matched PCL, 
+		use corresponding Derivation, and use input SOO for the allele
+		continue
+	    if PCL NS
+	        create new "Not Specified" MCL
+		if SOO is either "129" or "129S/SvEv" 
+		    use corresponding "Not Specified" PCL (_cellline_keys 1098, 40245), and corresponding Derivation for Allele Type.  
+		    continue
+		else # If SOO is any other strain, 
+		    then for PCL use generic "Not Specified" (cellline key = -1) and corresponding Derivation for Allele Type.
+		    continue
+	    if PCL OSN
+	    	if not (general note)
+		    report, skip, continue
+		else
+		    create new "Not Specified" MCL,
+		    if SOO is either "129" or "129P2/OlaHsd" or "129S5/SvEvBrd" 
+			use corresponding "Other (see notes)" PCL (_cellline_keys 1101, 40248, 40255)
+		    	and corresponding Derivation for Allele Type.  
+			continue
+		    else # If SOO is any other strain, 
+			then for PCL use generic "Other (see notes)" (cellline key = 1069)
+			and corresponding Derivation for Allele Type.
+		        continue
+else # Not TAR/GT
+    if verifies
+	use input SOO for Allele SOO.	
+	there is no MCL	
+			    
