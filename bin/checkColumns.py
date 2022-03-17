@@ -103,7 +103,7 @@ def checkColumns ():
         if nc < numColumns:
             errors = errors + 1
             colError = colError + 1
-        ### start code for missing data in req columns
+        
         # If errors then wrong number of columns exists; so continue to next
         if colError > 0:
             print('Missing Column(s): %s' % (columns))
@@ -111,11 +111,6 @@ def checkColumns ():
         # default
         bad = 1
 
-        #if columns[0] != '' and columns[1] != '' and columns[2] != '' and columns[3] != '':
-        #    bad = 0
-        #if bad == 1:
-        #    print('Missing Data in required column: %s' % (columns))
-        ### end code for missing data in req columns
     return
 
 #
