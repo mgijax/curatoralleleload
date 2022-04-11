@@ -5,7 +5,7 @@
 #
 #  Purpose:
 #
-#      This script does sanity checks and is a wrapper around the process 
+#      This script is a wrapper around the process 
 #	that does QC checks for the Curator Allele load
 #
 #  Usage:
@@ -24,7 +24,6 @@
 #
 #  Outputs:
 #
-#      - sanity report for the input file.
 #      - QC report for the input file 	
 #      - Log file (${QC_LOGFILE})
 #
@@ -44,7 +43,7 @@
 #      1) Validate the arguments to the script
 #      2) Validate & source the configuration files to establish the environment
 #      3) Verify that the input file exists
-#      4) Update path to sanity/QC reports if this is not a 'live' run 
+#      4) Update path to QC reports if this is not a 'live' run 
 #	     i.e. curators running the scripts 
 #      5) Initialize the log file
 #      6) creates table in tempdb for the input file
@@ -70,7 +69,7 @@ BINDIR=`dirname $0`
 CONFIG=`cd ${BINDIR}/..; pwd`/curatoralleleload.config
 USAGE='Usage: alleleQC.sh  filename'
 
-# set LIVE_RUN  to sanity/QC check only as the default
+# set LIVE_RUN  to QC check only as the default
 LIVE_RUN=0; export LIVE_RUN
 
 #
@@ -118,9 +117,7 @@ fi
 #
 if [ ${LIVE_RUN} -eq 0 ]
 then
-	SANITY_RPT=${CURRENTDIR}/`basename ${SANITY_RPT}`
 	QC_RPT=${CURRENTDIR}/`basename ${QC_RPT}`
-	WARNING_RPT=${CURRENTDIR}/`basename ${WARNING_RPT}`
 	QC_LOGFILE=${CURRENTDIR}/`basename ${QC_LOGFILE}`
 
 fi
@@ -134,42 +131,9 @@ touch ${LOG}
 
 #
 # Convert the input file into a QC-ready version that can be used to run
-# the sanity/QC reports against.
+# the QC reports against.
 #
 dos2unix ${INPUT_FILE} ${INPUT_FILE} 2>/dev/null
-
-#
-# FUNCTION: Check for lines with missing columns in input file and
-#           write the line numbers to the sanity report.
-#
-checkColumns ()
-{
-    FILE=$1         # The input file to check
-    REPORT=$2       # The sanity report to write to
-    NUM_COLUMNS=$3  # The number of columns expected in each input record
-    NUM_COLUMNS=$3  # The number of columns expected in each input record
-    echo "" >> ${REPORT}
-    echo "Lines With Missing Columns or Data" >> ${REPORT}
-    echo "-----------------------------------" >> ${REPORT}
-    ${PYTHON} ${CURATORALLELELOAD}/bin/checkColumns.py ${FILE} ${NUM_COLUMNS} > ${TMP_FILE}
-    cat ${TMP_FILE} >> ${REPORT}
-    if [ `cat ${TMP_FILE} | wc -l` -eq 0 ]
-    then
-        return 0
-    else
-        return 1
-    fi
-}
-
-#
-# Initialize the report file(s) to make sure the current user can write to them.
-#
-RPT_LIST="${SANITY_RPT}"
-
-for i in ${RPT_LIST}
-do
-    rm -f $i; >$i
-done
 
 #
 # Create a temporary file and make sure it is removed when this script
@@ -177,51 +141,6 @@ done
 #
 TMP_FILE=/tmp/`basename $0`.$$
 trap "rm -f ${TMP_FILE}" 0 1 2 15
-
-#
-# FUNCTION: Check an input file to make sure it has a minimum number of lines.
-#
-checkLineCount ()
-{
-    FILE=$1        # The input file to check
-    REPORT=$2      # The sanity report to write to
-    NUM_LINES=$3   # The minimum number of lines expected in the input file
-
-    COUNT=`cat ${FILE} | wc -l | sed 's/ //g'`
-    if [ ${COUNT} -lt ${NUM_LINES} ]
-    then
-        return 1
-    else
-        return 0
-    fi
-}
-
-#
-# FUNCTION: Check for duplicate lines in an input file and write the lines
-#           to the sanity report.
-#
-checkDupLines ()
-{
-    FILE=$1    # The input file to check
-    REPORT=$2  # The sanity report to write to
-
-    echo "" >> ${REPORT}
-    echo "Duplicate Lines" >> ${REPORT}
-    echo "---------------" >> ${REPORT}
-    sort ${FILE} | uniq -d > ${TMP_FILE}
-    cat ${TMP_FILE} >> ${REPORT}
-    if [ `cat ${TMP_FILE} | wc -l` -eq 0 ]
-    then
-        return 0
-    else
-        return 1
-    fi
-}
-
-echo "" >> ${LOG}
-date >> ${LOG}
-echo "Run sanity checks on the input file" >> ${LOG}
-SANITY_ERROR=0
 
 #
 # Make sure the input files exist (regular file or symbolic link).
@@ -233,38 +152,6 @@ then
     echo "" | tee -a ${LOG}
     exit 1
 fi
-
-#checkLineCount ${INPUT_FILE} ${SANITY_RPT} ${MIN_LINES}
-#if [ $? -ne 0 ]
-#then
-#    echo "" | tee -a ${LOG}
-#    echo "Input file has no data: ${INPUT_FILE}" | tee -a ${LOG}
-#    echo "" | tee -a ${LOG}
-#    exit 1
-#fi
-
-#checkColumns ${INPUT_FILE} ${SANITY_RPT} ${NUM_COLUMNS}
-#if [ $? -ne 0 ]
-#then
-#    SANITY_ERROR=1
-#fi
-
-#checkDupLines ${INPUT_FILE} ${SANITY_RPT}
-#if [ $? -ne 0 ]
-#then
-#    SANITY_ERROR=1
-#fi
-
-#if [ ${SANITY_ERROR} -ne 0 ]
-#then
-#    if [ ${LIVE_RUN} -eq 0 ]
-#    then
-#	echo "Sanity errors detected. See ${SANITY_RPT}" | tee -a ${LOG}
-#    fi
-#    exit 1
-#fi
-
-#date >> ${LOG}
 
 #
 # Generate the QC reports.
@@ -293,15 +180,6 @@ else
 	echo "No QC errors detected"
     fi
     RC=0
-fi
-
-if [ -s ${WARNING_RPT} -a ${LIVE_RUN} -eq 0 ]
-then
-    echo "" 
-    echo "Warnings listed below. Also see ${WARNING_RPT}"
-    cat ${WARNING_RPT}
-    # no longer removing warning report because expr comp can have 
-    # many warnings
 fi
 
 echo "" >> ${LOG}
