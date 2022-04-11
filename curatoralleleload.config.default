@@ -47,14 +47,12 @@ NOTE_BCP=${OUTPUTDIR}/MGI_Note.bcp
 
 export RELATIONSHIP_BCP PROPERTY_BCP NOTE_BCP
 
-# Full path to the sanity/QC reports.
+# Full path to the QC report
 #
-SANITY_RPT=${RPTDIR}/sanity.rpt
 QC_RPT=${RPTDIR}/qc.rpt
-WARNING_RPT=${RPTDIR}/warning.rpt
 QC_LOGFILE=${LOGDIR}/curatoralleleQC.log
 
-export SANITY_RPT QC_RPT WARNING_RPT QC_LOGFILE
+export QC_RPT QC_LOGFILE
 
 
 #
