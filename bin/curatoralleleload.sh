@@ -116,14 +116,14 @@ ${CURATORALLELELOAD}/bin/alleleQC.sh ${INPUT_FILE_DEFAULT} live
 STAT=$?
 if [ ${STAT} -eq 1 ]
 then
-    checkStatus ${STAT} "Sanity errors detected. See ${SANITY_RPT}. alleleQC.sh"
+    checkStatus ${STAT} "Sanity errors detected. alleleQC.sh"
     # run postload cleanup and email logs
     shutDown
 fi
 
 if [ ${STAT} -eq 2 ]
 then
-    checkStatus ${STAT} "An error occurred while generating the sanity/QC reports - See ${QC_LOGFILE}. alleleQC.sh"
+    checkStatus ${STAT} "An error occurred while generating the QC reports - See ${QC_LOGFILE}. alleleQC.sh"
 
     # run postload cleanup and email logs
     shutDown
