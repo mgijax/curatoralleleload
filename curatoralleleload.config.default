@@ -33,19 +33,15 @@ RPTDIR=${FILEDIR}/reports
 OUTPUTDIR=${FILEDIR}/output
 ARCHIVEDIR=${FILEDIR}/archive
 
-export INPUTDIR FILEDIR LOGDIR RPTDIR OUTPUTDIR ARCHIVEDIR
+export FILEDIR INPUTDIR LOGDIR RPTDIR OUTPUTDIR ARCHIVEDIR
 
-# Full path name of the input file
+# Full path name of the published input file
 INPUT_FILE_DEFAULT="${INPUTDIR}/curatoralleleload.txt"
 
-export INPUT_FILE_DEFAULT
+# Full path to the "cleaned up" load ready file
+INPUT_FILE_QC=${OUTPUTDIR}/curatoralleleload_qc.txt
 
-# Full path name of the BCP files
-ALLELE_BCP=${OUTPUTDIR}/ALL_Allele.bcp
-PROPERTY_BCP=${OUTPUTDIR}/MGI_Relationship_Property.bcp
-NOTE_BCP=${OUTPUTDIR}/MGI_Note.bcp
-
-export RELATIONSHIP_BCP PROPERTY_BCP NOTE_BCP
+export INPUT_FILE_DEFAULT INPUT_FILE_QC
 
 # Full path to the QC report
 #
@@ -53,31 +49,6 @@ QC_RPT=${RPTDIR}/qc.rpt
 QC_LOGFILE=${LOGDIR}/curatoralleleQC.log
 
 export QC_RPT QC_LOGFILE
-
-
-#
-# For sanity checks
-#
-
-# Number of columns expected for the input file (for sanity check).
-NUM_COLUMNS=23
-
-# minimum # lines in input (including header)
-MIN_LINES=2
-
-export NUM_COLUMNS MIN_LINES
-
-TEMP_TABLE=WORK
-TEMP_BCP=work.bcp
-
-export TEMP_TABLE WORK_BCP
-
-# Full path to QC/sanity scripts.
-#
-LOAD_QC=${CURATORALLELELOAD}/bin/curatoralleleQC.py
-LOAD_QC_SH=${CURATORALLELELOAD}/bin/curatoralleleQC.sh
-
-export LOAD_QC LOAD_QC_SH
 
 #  Full path name of the log files
 LOG_PROC=${LOGDIR}/curatoralleleload.proc.log
@@ -87,22 +58,28 @@ LOG_VAL=${LOGDIR}/curatoralleleload.val.log
 
 export LOG_PROC LOG_DIAG LOG_CUR LOG_VAL
 
-# this load's login value for jobstream 
-JOBSTREAM=curatoralleleload
+# Send debug messages to the diagnostic log (true or false)
+#  And don't execute BCP
+LOG_DEBUG=false
 
-export JOBSTREAM
-
-# add or delete_reload
-LOAD_MODE=delete_reload
-
-export LOAD_MODE
+export LOG_DEBUG
 
 ###########################################################################
+#
+#  MISCELLANEOUS SETTINGS
+#
+###########################################################################
+
 #  The name of the load for the subject of an email notification
-# will be set by wrapper based on collection for each load
 MAIL_LOADNAME="Curator Allele Load"
 
-export MAIL_LOADNAME
+# this load's login value for jobstream
+JOBSTREAM=curatoralleleload
+
+#  Recipient list for mailing the log files (comma-separated)
+MAIL_LOG_PROC="mgiadmin"
+
+export MAIL_LOADNAME JOBSTREAM MAIL_LOG_PROC
 
 #  INSTALLDIR expected by dlautils/DLAInstall
 INSTALLDIR=${CURATORALLELELOAD}

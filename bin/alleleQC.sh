@@ -165,15 +165,33 @@ if [ `cat ${TMP_FILE}` -eq 1 ]
 then
     echo "An error occurred while generating the QC reports"
     echo "See log file (${LOG})"
-    RC=2
+    RC=1
 elif [ `cat ${TMP_FILE}` -eq 2 ]
 then
     if [ ${LIVE_RUN} -eq 0 ]
     then
 	echo ""
-	echo "QC errors detected. See ${QC_RPT} " | tee -a ${LOG}
+	echo "Warn and Skipped Alleles in QC. See ${QC_RPT} " | tee -a ${LOG}
+    fi
+    RC=2
+elif [ `cat ${TMP_FILE}` -eq 3 ]
+then
+    if [ ${LIVE_RUN} -eq 0 ]
+    then
+        echo ""
+        echo "Skipped Alleles in QC. See ${QC_RPT} " | tee -a ${LOG}
     fi
     RC=3
+elif [ `cat ${TMP_FILE}` -eq 4 ]
+then
+    if [ ${LIVE_RUN} -eq 0 ]
+    then
+        echo ""
+        echo "Warn Alleles in QC. See ${QC_RPT} " | tee -a ${LOG}
+    fi
+    RC=4
+
+
 else
     if [ ${LIVE_RUN} -eq 0 ]
     then

@@ -95,48 +95,51 @@ cleanDir ${OUTPUTDIR}
 # and is more recent than the input file, the load does not need to be run.
 #
 LASTRUN_FILE=${INPUTDIR}/lastrun
-if [ -f ${LASTRUN_FILE} ]
-then
-    if test ${LASTRUN_FILE} -nt ${INPUT_FILE_DEFAULT}
-    then
-
-        echo "Input file has not been updated - skipping load" | tee -a ${LOG_PROC}
-        # set STAT for shutdown
-        STAT=0
-        echo 'shutting down'
-        shutDown
-        exit 0
-    fi
-fi
+#if [ -f ${LASTRUN_FILE} ]
+#then
+#    if test ${LASTRUN_FILE} -nt ${INPUT_FILE_DEFAULT}
+#    then
+#
+#        echo "Input file has not been updated - skipping load" | tee -a ${LOG_PROC}
+#        # set STAT for shutdown
+#        STAT=0
+#        echo 'shutting down'
+#        shutDown
+#        exit 0
+#    fi
+#fi
 
 echo "" >> ${LOG_DIAG}
 date >> ${LOG_DIAG}
-echo "Run sanity/QC checks"  | tee -a ${LOG_DIAG}
+echo "Run QC checks"  | tee -a ${LOG_DIAG}
 ${CURATORALLELELOAD}/bin/alleleQC.sh ${INPUT_FILE_DEFAULT} live
 STAT=$?
 if [ ${STAT} -eq 1 ]
 then
-    checkStatus ${STAT} "Sanity errors detected. alleleQC.sh"
+    checkStatus ${STAT} "An error occurred while generating the QC reports - See ${QC_LOGFILE}. alleleQC.sh"
     # run postload cleanup and email logs
     shutDown
 fi
 
 if [ ${STAT} -eq 2 ]
 then
-    checkStatus ${STAT} "An error occurred while generating the QC reports - See ${QC_LOGFILE}. alleleQC.sh"
+    echo "Warn and Skipped Alleles in QC. Warn alleles were loaded - See ${QC_RPT}. alleleQC.sh" | tee -a ${LOG_PROC} ${LOG_DIAG}
 
-    # run postload cleanup and email logs
-    shutDown
+
 fi
 
 if [ ${STAT} -eq 3 ]
 then
-    checkStatus ${STAT} "QC errors detected. See ${QC_RPT}. alleleQC.sh"
+    echo "Skipped Alleles in QC See ${QC_RPT}. alleleQC.sh" | tee -a ${LOG_PROC} ${LOG_DIAG}
     
-    # run postload cleanup and email logs
-    shutDown
+fi
+
+if [ ${STAT} -eq 4 ]
+then
+    echo "Warn Alleles in QC. These were loaded. See ${QC_RPT}. alleleQC.sh" | tee -a ${LOG_PROC} ${LOG_DIAG}
 
 fi
+
 
 #
 # run the load
@@ -148,39 +151,6 @@ ${PYTHON} ${CURATORALLELELOAD}/bin/curatoralleleload.py
 STAT=$?
 checkStatus ${STAT} "${CURATORALLELELOAD}/bin/curatoralleleload.py"
 
-# Do BCP
-#
-
-# BCP delimiters
-COLDELIM="\t"
-LINEDELIM="\n"
-
-TABLE=
-
-if [ -s "${OUTPUTDIR}/${TABLE}.bcp" ]
-then
-    echo "" >> ${LOG_DIAG}
-    date >> ${LOG_DIAG}
-    echo "BCP in ${TABLE}"  >> ${LOG_DIAG}
-
-
-    # Drop indexes
-    ${MGD_DBSCHEMADIR}/index/${TABLE}_drop.object >> ${LOG_DIAG}
-
-    # BCP new data
-
-    ${PG_DBUTILS}/bin/bcpin.csh ${MGD_DBSERVER} ${MGD_DBNAME} ${TABLE} ${OUTPUTDIR} ${TABLE}.bcp ${COLDELIM} ${LINEDELIM} ${SCHEMA} >> ${LOG_DIAG}
-
-    # Create indexes
-    ${MGD_DBSCHEMADIR}/index/${TABLE}_create.object >> ${LOG_DIAG}
-fi
-
-cat - <<EOSQL | ${PG_DBUTILS}/bin/doisql.csh $0 >> ${LOG_DIAG}
-#select setval('mgi_relationship_seq', (select max(_Relationship_key) from MGI_Relationship));
-#select setval('mgi_relationship_property_seq', (select max(_RelationshipProperty_key) from MGI_Relationship_Property));
-#select setval('mgi_note_seq', (select max(_Note_key) from MGI_Note));
-EOSQL
-
 #
 # Archive a copy of the input file, adding a timestamp suffix.
 #
@@ -188,8 +158,13 @@ echo "" >> ${LOG_DIAG}
 date >> ${LOG_DIAG}
 echo "Archive input file" >> ${LOG_DIAG}
 TIMESTAMP=`date '+%Y%m%d.%H%M'`
+# The published file
 ARC_FILE=`basename ${INPUT_FILE_DEFAULT}`.${TIMESTAMP}
 cp -p ${INPUT_FILE_DEFAULT} ${ARCHIVEDIR}/${ARC_FILE}
+
+# the QC'd file
+ARC_FILE=`basename ${INPUT_FILE_QC}`.${TIMESTAMP}
+cp -p ${INPUT_FILE_QC} ${ARCHIVEDIR}/${ARC_FILE}
 
 #
 # Touch the "lastrun" file to note when the load was run.

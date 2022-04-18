@@ -1,4 +1,4 @@
-#
+
 #  alleleQC.py
 ###########################################################################
 #
@@ -20,7 +20,7 @@
 #  Outputs:
 #
 #      - QC report (${QC_RPT})
-#      - temp table BCP file (${MGI_ID_BCP})
+#      - intermediate file of QC'd alleles to create
 #
 #  Exit Codes:
 #
@@ -38,7 +38,8 @@
 #      2) Perform initialization steps.
 #      3) Open the input/output files.
 #      4) Generate the QC reports.
-#      5) Close the input/output files.
+#      5) Generate intermediate file of alleles to create
+#      6) Close the input/output files.
 #
 #  History:
 #
@@ -66,6 +67,10 @@ USAGE = 'Usage: alleleQC.py  inputFile'
 #  GLOBALS
 #
 
+# intermediate load ready file
+loadReadyFile = os.getenv("INPUT_FILE_QC")
+fpLoadReady = None
+
 # allele types with MCLs
 TAR = 'Targeted'
 GT = 'Gene trapped'
@@ -76,8 +81,12 @@ alleleTypeList = [TAR, GT, EM]
 lineNumberSet = set([])
 
 # MCL/PCL values
-NS = 'Not Specified'
+NS = 'Not Specified' # also allele type and collection default
 OSN = 'Other (see notes)'
+
+# some default values
+NA = 'Not Applicable'  # inheritance mode default
+RES = 'Reserved'       # allele status default
 
 # strains with derivations in the db
 one29 = '129'
@@ -88,18 +97,24 @@ strainList = [one29, one29SSvEv, one29P2OlaHsd, one2955SvEvBrd]
 
 # strains in db corresponding to PCLs
 # MCL NS, PCL = NS, use these PCL keys
-nsOne29 =  1098
-nsOne29SSvEv = 40245
+nsOne29Key =  1098
+nsOne29SSvEvKey = 40245
 
 # MCL NS, PCL OSN, use these PCL keys
-osnOne29 = 1101
-osnO29P2OlaHsd = 40248
-osnOne2955SvEvBrd = 40255
+osnOne29Key = 1101
+osnO29P2OlaHsdKey = 40248
+osnOne2955SvEvBrdKey = 40255
+
+# Generic 'Not Specified' PCL 
+genNsPCLKey = -1
+
+# Generic 'Other (see notes)' PCL
+genOsnPCLKey = 1069
 
 # Report file names
 qcRptFile = os.environ['QC_RPT']
 
-# 1 if any QC errors in the input file
+# 1 if any skip or warn errors in the input file
 hasSkipErrors = 0
 hasWarnErrors = 0
 
@@ -163,6 +178,85 @@ distinctLineList = []
 
 # lines that pass QC
 goodLineList = []
+
+# alleles to load - they pass all QC
+allelesToLoadList = []
+
+class MutantCellLine:
+    #
+    # Is: data object for a mutant cell line
+    # Has: if mclKey is set - use that to create association
+    #      if derivationKey set - use that to create new NS mcl
+    # Does: provides direct access to its attributes
+    #
+    def __init__(self):
+        
+        self.mclKeyList = []          # mutant cell line keys existing in the database
+        self.derivationKey = None  # derivation key to use to create new Not Specified mcl
+
+
+class Allele:
+    #
+    # Is: data object for a Allele
+    # Has: a set of allele attributes, strings unless labeled otherwise
+    # Does: provides direct access to its attributes
+    #
+    def __init__(self,
+        aSym,           # allele symbol
+        aName,          # allele name
+        geneID,         # marker MGI ID 
+        user,           # allele creator
+        aStatus,        # allele status
+        aType,          # allele type
+        inheritMode,    # inheritance mode
+        transmission,   # germ line transmission
+        collection,     # allele collection
+        molNote,        # molecular note
+        nomenNote,      # allele nomenclature note
+        genNote,        # general note
+        colonyNote,     # pipe delim colony ID string
+        origRef,        # original reference
+        transRef,       # transmission reference
+        molRef,         # molecular reference
+        idxRefs,        # index references - multivalued '|' delimited
+        synonyms,       # allele synonyms - multivalued '|' delimited
+        subtypes,       # allele subtypes - multivalued '|' delimited
+        molMuts,        # molecular mutations - multivalued '|' delimited
+        pcl,            # parent cell line                    
+        soo,            # strain of origin
+        mclKeys,         # list of mcl keys with which to create allele associations 
+        derivationKey): # derivation key with which to create the new Not Specified cell line
+
+        self.aSym = aSym 
+        self.aName = aName
+        self.geneID = geneID
+        self.user = user
+        self.alleleStatus = aStatus
+        self.alleleType = aType
+        self.inheritMode = inheritMode
+        self.transmission = transmission
+        self.collection = collection 
+        self.molNote = molNote
+        self.nomenNote = nomenNote
+        self.genNote = genNote
+        self.colonyNote = colonyNote
+        self.origRef = origRef
+        self.transRef = transRef
+        self.molRef = molRef
+        self.idxRefs = idxRefs 
+        self.synonyms = synonyms
+        self.subtypes = subtypes
+        self.molMuts = molMuts
+        self.pcl = pcl
+        self.soo = soo
+        self.mclKeys = mclKeys
+        self.derivationKey = derivationKey
+
+    def toString(this):
+        return '%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s' % (this.aSym, this.aName, this.geneID, this.user, this.alleleStatus, this.alleleType, this.inheritMode, this.transmission, this.collection, this.molNote, this.nomenNote, this.genNote, this.colonyNote, this.origRef, this.transRef, this.molRef, this.idxRefs, this.synonyms, this.subtypes, this.molMuts, this.pcl, this.soo, this.mclKeys, this.derivationKey)
+
+    def toLoad(this):
+        return '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s' % (this.aSym, TAB, this.aName, TAB, this.geneID, TAB, this.user, TAB, this.alleleStatus, TAB, this.alleleType, TAB, this.inheritMode, TAB, this.transmission, TAB, this.collection, TAB, this.molNote, TAB, this.nomenNote, TAB, this.genNote, TAB, this.colonyNote, TAB, this.origRef, TAB, this.transRef, TAB, this.molRef, TAB, this.idxRefs, TAB, this.synonyms, TAB, this.subtypes, TAB, this.molMuts, TAB, this.pcl, TAB, this.soo, TAB, this.mclKeys, TAB, this.derivationKey, CRT)
 
 #
 # Purpose: Validate the arguments to the script.
@@ -334,7 +428,7 @@ def loadLookups():
 # Throws: Nothing
 #
 def openFiles ():
-    global fpInput, fpQcRpt, fpWorkBCP, fpDeleteRpt, fpDeleteSQL
+    global fpInput, fpLoadReady, fpQcRpt
 
     #
     # Open the input file
@@ -343,6 +437,15 @@ def openFiles ():
         fpInput = open(inputFile, 'r')
     except:
         print('Cannot open input file: %s' % inputFile)
+        sys.exit(1)
+
+    #
+    # Open load ready input file
+    #
+    try:
+        fpLoadReady = open(loadReadyFile, 'w')
+    except:
+        print('Cannot open load ready file: %s' % loadReadyFile)
         sys.exit(1)
 
     #
@@ -367,7 +470,7 @@ def openFiles ():
 #
 
 def writeReport():
-    global hasSkipErrors, lineNumberSet
+    global hasSkipErrors, hasWarnErrors, lineNumberSet
 
     #
     # Now write any errors to the report
@@ -375,7 +478,7 @@ def writeReport():
     fpQcRpt.write( str.center('Warning QC - these will be loaded',80) + CRT)
 
     if len(dupeAlleleList):
-        hasSkipErrors = 1
+        hasWarnErrors = 1
         fpQcRpt.write(CRT + CRT + str.center('Allele Symbols already in the DB (case sensitive)',60) + CRT)
         fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
         fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
@@ -631,9 +734,11 @@ def writeReport():
 # Throws: Nothing
 #
 def closeFiles ():
-    global fpInput, fpQcRpt
+    global fpInput, fpLoadReady, fpQcRpt
     fpInput.close()
+    fpLoadReady.close()
     fpQcRpt.close()
+
     return
 
 # end closeFiles) -------------------------------
@@ -642,8 +747,8 @@ def runQcChecks():
     #
     # Purpose: run all QC checks
     # Returns: Nothing
-    # Assumes: Nothing
-    # Effects: writes reports to the file system
+    # Assumes: file descriptors have been initialized
+    # Effects: writes reports to the file system, writes load ready file to file system
     # Throws: Nothing
     #
     global lineNumberSet
@@ -652,13 +757,14 @@ def runQcChecks():
     junk = fpInput.readline() # header
     line = fpInput.readline()
     lineNum = 1
+
     while line:
 
         # flag so we don't report lines with bad allele type n the Non TAR/GT/EM Allele
         # with specified MCL and/or PCL section
         badAlleleType = 0
         lineNum += 1
-        #print('line: %s %s' % (lineNum, line))
+        #print('lineNum: %s %s' % (lineNum, line))
         # check for dupes
         if line not in distinctLineList:
             distinctLineList.append(line)
@@ -675,8 +781,8 @@ def runQcChecks():
         # get columns 1-23
         (aSym, aName, geneID, user, alleleStatus, alleleType, inheritMode, 
             transmission, collection, molNote, nomenNote, genNote, colonyNote, 
-            origRef, transRef, molRef, idxRef, pcl, soo, mcl, synonym, subtype, 
-            molMut) = list(map(str.strip, str.split( \
+            origRef, transRef, molRef, idxRefs, pcl, soo, mcls, synonyms, 
+            subtypes, molMuts) = list(map(str.strip, str.split( \
                 line, TAB)))[:23]
 
         #
@@ -697,7 +803,7 @@ def runQcChecks():
 
         # if allele type is TAR/GT and MCL is null or PCL is null
         # matrix rows 4/5a
-        if alleleType in [TAR, GT] and (not mcl or not pcl):
+        if alleleType in [TAR, GT] and (not mcls or not pcl):
             tarGtMissingMclPclList.append('%s  %s' % (lineNum, line))
             skipLine = 1
             lineNumberSet.add(lineNum)
@@ -705,14 +811,14 @@ def runQcChecks():
         # if allele type is EM then both MCL and PCL must be specified
         # matrix rows 4/5b
         if alleleType == EM:
-            if (mcl and not pcl) or (not mcl and pcl): 
+            if (mcls and not pcl) or (not mcls and pcl): 
                 emMissingMclPclList.append('%s  %s' % (lineNum, line))
                 skipLine = 1
                 lineNumberSet.add(lineNum)
 
         # Non TAR/GT/EM alleles should have neither MCL or PCL specified
         # matrix rows 7/8
-        if not badAlleleType and alleleType not in alleleTypeList and (mcl or pcl):
+        if not badAlleleType and alleleType not in alleleTypeList and (mcls or pcl):
             nonTARGTEMwithMclPclList.append('%s  %s' % (lineNum, line))
             skipLine = 1
             lineNumberSet.add(lineNum)
@@ -783,8 +889,8 @@ def runQcChecks():
             skipLine = 1
             lineNumberSet.add(lineNum)
         # can have multiple
-        if idxRef != '':
-            for r in str.split(idxRef, '|'):
+        if idxRefs != '':
+            for r in str.split(idxRefs, '|'):
                 if r not in referenceLookup:
                     badIdxRefList.append('%s  %s' % (lineNum, line))
                     skipLine = 1
@@ -798,8 +904,8 @@ def runQcChecks():
             skipLine = 1
             lineNumberSet.add(lineNum)
         # can have multiple
-        if mcl != '':
-            for m in str.split(mcl, '|'):
+        if mcls != '':
+            for m in str.split(mcls, '|'):
                 if m not in mclLookup:
                     #print('bad mcl: %s' % m)
                     badMclList.append('%s  %s' % (lineNum, line))
@@ -833,16 +939,16 @@ def runQcChecks():
                         #else:
                         #    print('no marker mismatch')
         # can have multiple
-        if subtype != '':
-            for s in str.split(subtype, '|'):
+        if subtypes != '':
+            for s in str.split(subtypes, '|'):
                 if s not in subtypeLookup:
                     badSubtypeList.append('%s  %s' % (lineNum, line))
                     skipLine = 1
                     lineNumberSet.add(lineNum) 
         # can have multiple
-        if molMut != '':
+        if molMuts != '':
             # if molecular mutation = 'Other', there must be a molecular note
-            for m in str.split(molMut, '|'):
+            for m in str.split(molMuts, '|'):
                 if m not in mutationLookup:
                     badMolMutList.append('%s  %s' % (lineNum, line))
                     skipLine = 1
@@ -852,55 +958,68 @@ def runQcChecks():
                     skipLine = 1
                     lineNumberSet.add(lineNum)
         if skipLine == 0:
-            # We have a TAR/GT/EM allele that passes QC thus far - now check
-            # MCL/PCL/SOO rules
-            if alleleType in alleleTypeList:
-                skipLine = qcMCL(aSym, mcl, pcl, soo, alleleType, genNote, line, lineNum)       
+            # A list of MutantCellLine objects
+            resolvedMcls = []
 
+            # these will remain blank if not TAR/GT or EM allele type
+            mclKeys = ''
+            derivationKey = ''
+
+            # We have a TAR/GT/EM allele that passes QC thus far - now find the mcl or
+            # correct derivation, to create NS MCL, using the MCL/PCL/SOO rules
+            if alleleType in alleleTypeList:
+                # attempt to resolve the mcls for this allele
+                # if resolvedMcls empty, we could not resolve so skip this allele
+                resolvedMcls = qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum) 
+                if not resolvedMcls:
+                    skipLine = 1
+                else:
+                    for mObject in resolvedMcls:
+                        if mObject.mclKeyList:
+                            mclKeys = '|'.join(mObject.mclKeyList)
+                        elif mObject.derivationKey:
+                            derivationKey = mObject.derivationKey
         if skipLine == 0:
             goodLineList.append(line)
+            if alleleStatus == '':
+                alleleStatus = RES
+            if alleleType == '':
+                alleleType = NS
+            if inheritMode == '':
+                inheritMode = NA
+            if collection == '':
+                collection = NS
+            
+            
+            alleleToLoad = Allele(aSym, aName, geneID, user, alleleStatus, alleleType, inheritMode, transmission, collection, molNote, nomenNote, genNote, colonyNote, origRef, transRef, molRef, idxRefs, synonyms, subtypes, molMuts, pcl, soo, mclKeys, derivationKey)
+            allelesToLoadList.append(alleleToLoad)
+            #print('%s %s' % (lineNum, alleleToLoad.toString()))
         skipLine = 0
 
         line = fpInput.readline()
     return
 
 # end runQcChecks() -------------------------------
-# strains with derivations in the db
-#one29 = '129'
-#one29SSvEv = '129S/SvEv'
-#one29P2OlaHsd = '129P2/OlaHsd'
-#one2955SvEvBrd = '12955/SvEvBrd'
-#strainList = [one29, one29SSvEv, one29P2OlaHsd, one2955SvEvBrd]
 
-# strains in db corresponding to PCLs
-# MCL NS, PCL = NS, use these PCL keys
-#nsOne29 =  1098
-#nsOne29SSvEv = 40245
+def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
 
-# MCL NS, PCL OSN, use these PCL keys
-#osnOne29 = 1101
-#osnO29P2OlaHsd = 40248
-#osnOne2955SvEvBrd = 40255
-
-def qcMCL(aSym, mcl, pcl, soo, alleleType, genNote, line, lineNum):
-    #global 
-    skipLine = 0
-    print(CRT + CRT + 'In qcMCL')
-    print('lineNum: %s allele symbol: %s, mcl: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcl, pcl, soo, alleleType))
-    for m in str.split(mcl, '|'):
-        print('m: %s' % m)
+    resolvedMclList = []
+    #print(CRT + CRT + 'In qcMCL')
+    #print('in qcMCL  lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+    for m in str.split(mcls, '|'):
+        #print('m: %s' % m)
         if m != NS: # rows 10-12 in the matrix
-            print('row 10 checks: m != NS')
+            print('mcl != NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
             # lookup PCL for MCL in ALL_CellLine_Derivation_view
             # if same as incoming PCL and incoming strain, QC passes
-            sql = '''select v.parentcellline, v.parentcelllinestrain
+            sql = '''select c._cellline_key, v.parentcellline, v.parentcelllinestrain
                 from all_cellline c, all_cellLine_derivation_view v, voc_term t
                 where c.isMutant = 1
                 and c.cellline = '%s'
                 and v._derivationtype_key = t._term_key
                 and c._derivation_key = v._derivation_key''' % (m)
 
-            print(sql)
+            #print(sql)
             results = db.sql(sql, 'auto')
             
             if len(results) != 1:
@@ -908,48 +1027,132 @@ def qcMCL(aSym, mcl, pcl, soo, alleleType, genNote, line, lineNum):
             else:
                 dbPcl = results[0]['parentcellline']
                 dbStrain =  results[0]['parentcelllinestrain']
+                mclKey = results[0]['_cellline_key']
+                # if the incoming pcl does not match the mcl pcl in the database
+                # report and skip
                 if pcl != dbPcl:
                     pclNEdbPclList.append('%s  %s' % (lineNum, line))
                     lineNumberSet.add(lineNum)
-                    skipLine = 1
-                    print('pcl != dbPcl')
+                    #print('pcl != dbPcl')
+
+                # if the incoming soo does not match the pcl strain in the database
+                # report and skip
                 elif soo != dbStrain:
                     sooNEdbStrainList.append('%s  %s' % (lineNum, line))
                     lineNumberSet.add(lineNum)
-                    skipLine = 1
-                    print('soo != dbStrain')
-                print(results)
-                print(CRT + CRT)
-                #else:
-                    # determine the correct PCL to create the new NS MCL with
-                #    if soo == 
-
+                    #print('soo != dbStrain')
+                
+                # otherwise use the incoming named mcl
+                else:
+                    print('mcl != NS - incoming mcl used')
+                    mclResolved = MutantCellLine()
+                    mclResolved.mclKeyList.append(str(mclKey))
+                    resolvedMclList.append(mclResolved)
+                
         else: # m == NS
             if pcl not in (NS, OSN):
-                print('mcl=NS, pcl not in (NS, OSN)')
+                print('mcl=NS, pcl not in (NS, OSN): lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
                 # find the PCL
-                results = db.sql('''select c.cellline as parentcellline, c.celllinestrain parentcelllinestrain
+                results = db.sql('''select c._cellline_key as _parentcellline_key, c.cellline as parentcellline, c.celllinestrain as parentcelllinestrain
                     from all_cellline_view c
                     where c.isMutant = 0
                     and cellline = '%s' ''' % pcl, 'auto')
-                print('length of results: %s' % len(results))
+                #print('length of results: %s' % len(results))
                 # check that the pcl strain in db same as incoming soo
                 if soo != results[0]['parentcelllinestrain']:
                     sooNEdbStrainList.append('%s  %s' % (lineNum, line))
                     lineNumberSet.add(lineNum)
-                    skipLine = 1
-                    print('soo != dbStrain')
-                #else:
-                    # find the MCL to use
-                print(results)
-                print(CRT + CRT)   
-            #else: # pcl in (NS, OSN)
-                # no checking needed here - just have to determine the correct PCL to create the 
+                    #print('soo != dbStrain')
+                else:
+                    pclKey = results[0]['_parentcellline_key']
+                    # find the derivation to use
+                    sql = '''select v.name, v._derivation_key, 
+                            v._parentcellline_key, v.parentcellline, v.parentcelllinestrain 
+                        from all_cellline_derivation_view v, voc_term t
+                        where v._parentcellline_key = %s
+                         and v.creator = '%s'
+                        and v._derivationtype_key = t._term_key
+                        and t.term = '%s' ''' % (pclKey, NS, alleleType)
+                    print(sql + '\n')
+                    results = db.sql(sql, 'auto')
+                    print(results)
+                    print(CRT + CRT)   
+                    mclToCreate = MutantCellLine()
+                    mclToCreate.derivationKey = results[0]['_derivation_key']
+                    resolvedMclList.append(mclToCreate)
+            elif pcl == NS:
+                # no checking needed here - just have to determine the correct Derivation to create the 
                 # new NS MCL with
+                print ('mcl NS, pcl NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+                # find the pcl
+                pclKeyToUse = 0
 
-    return skipLine
+                if soo == one29:
+                    pclKeyToUse = osnOne29Key
+                elif soo == one29SSvEv:
+                    pclKeyToUse = nsOne29SSvEvKey
+                else:
+                    pclKeyToUse = genNsPCLKey
+
+                sql = '''select v.name, v._derivation_key,
+                            v._parentcellline_key, v.parentcellline, v.parentcelllinestrain
+                        from all_cellline_derivation_view v, voc_term t
+                        where v._parentcellline_key = '%s'
+                        and v.creator = '%s'
+                        and v._derivationtype_key = t._term_key
+                        and t.term = '%s' ''' % (pclKeyToUse, NS, alleleType)
+                print(sql + '\n')
+                results = db.sql(sql, 'auto')
+                print(results)
+                print(CRT + CRT)
+                mclToCreate = MutantCellLine()
+                mclToCreate.derivationKey = results[0]['_derivation_key']
+                resolvedMclList.append(mclToCreate)
+
+# strains with derivations in the db
+            elif pcl == OSN:
+                # no checking needed here - just have to determine the correct Derivation to create the
+                # new NS MCL with  
+                print ('mcl NS, pcl OSN: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+                # find the pcl
+                pclKeyToUse = 0
+
+                if soo == one29:
+                    pclKeyToUse = osnOne29Key
+                elif soo == one29P2OlaHsd:
+                    pclKeyToUse = osnO29P2OlaHsdKey
+                elif soo == one2955SvEvBrd:
+                    pclKeyToUse = osnOne2955SvEvBrdKey
+                else:
+                    pclKeyToUse = genOsnPCLKey
+
+                # now find the derivation
+                sql = '''select v.name, v._derivation_key,
+                            v._parentcellline_key, v.parentcellline, v.parentcelllinestrain
+                        from all_cellline_derivation_view v, voc_term t
+                        where v._parentcellline_key = '%s'
+                        and v.creator = '%s'
+                        and v._derivationtype_key = t._term_key
+                        and t.term = '%s' ''' % (pclKeyToUse, NS, alleleType)
+                print(sql + '\n')
+                results = db.sql(sql, 'auto')
+                print(results)
+                print(CRT + CRT)
+                mclToCreate = MutantCellLine()
+                mclToCreate.derivationKey = results[0]['_derivation_key']
+                # wait - are we creating a mcl for this?
+                resolvedMclList.append(mclToCreate)
+    return resolvedMclList
 
 # end qcMCL() -------------------------------
+
+def writeLoadReadyFile():
+    for a in allelesToLoadList:
+        fpLoadReady.write(a.toLoad())
+
+    return
+
+# end writeLoadReadyFile() -------------------------------
 
 #
 # Main
@@ -969,15 +1172,21 @@ runQcChecks()
 print('writeReport(): %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
 writeReport()
 
+print('writeLoadReadyFile(): %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
+writeLoadReadyFile()
+
 print('closeFiles(): %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
 sys.stdout.flush()
 closeFiles()
 
 db.useOneConnection(0)
 print('done: %s' % time.strftime("%H.%M.%S.%m.%d.%y", time.localtime(time.time())))
-
-if hasSkipErrors == 1 : 
+if hasSkipErrors and hasWarnErrors:
     sys.exit(2)
+elif hasSkipErrors: 
+    sys.exit(3)
+elif hasWarnErrors:
+    sys.exit(4)
 else:
     sys.exit(0)
 
