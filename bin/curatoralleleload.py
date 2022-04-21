@@ -119,7 +119,7 @@ accTable = 'ACC_Accession'
 noteTable = 'MGI_Note'
 synonymTable = 'MGI_Synonym'
 annotTable = 'VOC_Annot'
-mutantTable = 'ALL_Allele_CellLine'
+mclAssocTable = 'ALL_Allele_CellLine'
 mclTable = 'ALL_Cellline'
 
 #
@@ -132,7 +132,7 @@ accFileName = outputDir + '/' + accTable + '.bcp'
 noteFileName = outputDir + '/' + noteTable + '.bcp'
 synonymFileName = outputDir + '/' + synonymTable + '.bcp'
 annotFileName = outputDir + '/' + annotTable + '.bcp'
-mutantFileName =  outputDir + '/' + mutantTable + '.bcp'
+mclAssocFileName =  outputDir + '/' + mclAssocTable + '.bcp'
 mclFileName = outputDir + '/' + mclTable + '.bcp'
 
 #
@@ -281,9 +281,9 @@ def initialize():
         exit(1, 'Could not open file %s\n' % annotFileName)
 
     try:
-        fpMutantFile = open(mutantFileName, 'w')
+        fpMutantFile = open(mclAssocFileName, 'w')
     except:
-        exit(1, 'Could not open file %s\n' % mutantFileName)
+        exit(1, 'Could not open file %s\n' % mclAssocFileName)
 
     try:
         fpMclFile = open(mclFileName, 'w')
@@ -314,6 +314,7 @@ def closeFiles():
         fpRefFile.close()
         fpAccFile.close()
         fpNoteFile.close()
+        fpSynonymFile.close()
         fpAnnotFile.close()
         fpMutantFile.close()
         fpMclFile.close()
@@ -380,13 +381,13 @@ def bcpFiles():
 
     bcp1 = '%s %s "/" %s %s' % (bcpI, alleleTable, alleleFileName, bcpII)
     bcp2 = '%s %s "/" %s %s' % (bcpI, mutationTable, mutationFileName, bcpII)
-    bcp3 = '%s %s "/" %s %s' % (bcpI, mutantTable, mutantFileName, bcpII)
-    bcp4 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
-    bcp5 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
-    bcp6 = '%s %s "/" %s %s' % (bcpI, synonymTable, synonymFileName, bcpII)
-    bcp7 = '%s %s "/" %s %s' % (bcpI, noteTable, noteFileName, bcpII)
-    bcp8 = '%s %s "/" %s %s' % (bcpI, annotTable, annotFileName, bcpII)
-    bcp9 = '%s %s "/" %s %s' % (bcpI, mclTable, mclFileName, bcpII)
+    bcp3 = '%s %s "/" %s %s' % (bcpI, refTable, refFileName, bcpII)
+    bcp4 = '%s %s "/" %s %s' % (bcpI, accTable, accFileName, bcpII)
+    bcp5 = '%s %s "/" %s %s' % (bcpI, synonymTable, synonymFileName, bcpII)
+    bcp6 = '%s %s "/" %s %s' % (bcpI, noteTable, noteFileName, bcpII)
+    bcp7 = '%s %s "/" %s %s' % (bcpI, annotTable, annotFileName, bcpII)
+    bcp8 = '%s %s "/" %s %s' % (bcpI, mclTable, mclFileName, bcpII)
+    bcp9 = '%s %s "/" %s %s' % (bcpI, mclAssocTable, mclAssocFileName, bcpII)
 
     db.commit()
 
@@ -408,6 +409,9 @@ def bcpFiles():
     db.sql(''' select setval('voc_annot_seq', (select max(_Annot_key) from VOC_Annot)) ''', None)
     # update all_cellline_seq auto-sequence
     db.sql(''' select setval('all_cellline_seq', (select max(_CellLine_key) from ALL_CellLine)) ''', None)
+    # update mgi_synonym_seq auto-sequence
+    db.sql(''' select setval('mgi_synonym_seq', (select max(_Synonym_key) from MGI_Synonym)) ''', None)
+
 
     db.commit()
 
