@@ -19,8 +19,8 @@ usage ()
     exit 1
 }
 
-#LOADDIR=/usr/local/mgi/live/dataload/curatoralleleload
-LOADDIR=/home/sc/work/dataload/curatoralleleload
+LOADDIR=/usr/local/mgi/live/dataload/curatoralleleload
+#LOADDIR=/home/sc/work/dataload/curatoralleleload
 
 WRAPPER=${LOADDIR}/bin/alleleQC.sh
 
