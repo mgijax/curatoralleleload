@@ -43,6 +43,13 @@ INPUT_FILE_QC=${OUTPUTDIR}/curatoralleleload_qc.txt
 
 export INPUT_FILE_DEFAULT INPUT_FILE_QC
 
+# Full path to QC script
+#
+LOAD_QC_SH=${MRKCOORDLOAD}/bin/mrkcoordQC.sh
+
+export LOAD_QC_SH
+
+#
 # Full path to the QC report
 #
 QC_RPT=${RPTDIR}/qc.rpt
