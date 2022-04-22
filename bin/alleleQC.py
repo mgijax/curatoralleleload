@@ -433,8 +433,11 @@ def openFiles ():
     #
     # Open the input file
     #
+# encoding='utf-8' no
+# encoding=u'utf-8' no
+
     try:
-        fpInput = open(inputFile, 'r')
+        fpInput = open(inputFile, 'r',encoding='latin-1')
     except:
         print('Cannot open input file: %s' % inputFile)
         sys.exit(1)
