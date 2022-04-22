@@ -21,8 +21,8 @@ usage ()
 
 CURRENT_DIR=`pwd`
 
-LOADDIR=/usr/local/mgi/live/dataload/alleleload
-CONFIG=${LOADDIR}/alleleload.config
+LOADDIR=/usr/local/mgi/live/dataload/curatoralleleload
+CONFIG=${LOADDIR}/curatoralleleload.config
 
 #
 # The alleleload product is not installed on all servers, so make sure
