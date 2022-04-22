@@ -68,11 +68,11 @@ then
 fi
 
 #
-# For any server, if the input file
-# does not exist already, create one that is writable. This is just a
-# place holder until an input file is published. The input directory
-# should be opened up to allow the curation staff to publish new input
-# files.
+# For any server, if the input files do not exist already, create ones
+# that is writable. This is just a place holder until an input file is i
+# published and the QC run to create the load ready file. The input and output
+# directories are opened up to allow the curation staff to publish new input
+# files and run the QC script which creates the load ready file.
 #
 if [ ! -f ${INPUT_FILE_DEFAULT} ]
 then
@@ -83,6 +83,16 @@ fi
 
 chmod -f 775 ${INPUTDIR}
 chgrp mgi ${INPUTDIR}
+
+if [ ! -f ${INPUT_FILE_QC} ]
+then
+    touch ${INPUT_FILE_QC}
+    chmod 664 ${INPUT_FILE_QC}
+    chgrp mgi ${INPUT_FILE_QC}
+fi
+
+chmod -f 775 ${OUTPUTDIR}
+chgrp mgi ${OUTPUTDIR}
 
 #
 # The DLAInstall script removes all permissions from shell scripts for
