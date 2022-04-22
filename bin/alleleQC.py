@@ -830,7 +830,6 @@ def runQcChecks():
         #
         if aSym in alleleSymbolLookup:
             dupeAlleleList.append('%s  %s' % (lineNum, line))
-            skipLine = 1
             lineNumberSet.add(lineNum)
 
         if geneID not in geneIdLookup:
