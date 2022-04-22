@@ -682,41 +682,6 @@ def processFile():
         db.commit()
 
     return 0
-'''
-        #
-        # mutant cell line
-        #
-        if len(mutantCellLine) > 0:
-            addMutantCellLine(alleleKey, mutantCellLine, createdByKey)
-
-'''
-def addMutantCellLine(alleleKey, mutantCellLine, createdByKey):
-    # Purpose: write a mutant cell line associations to bcp file
-    # Returns: 1 if error,  else 0
-    # Assumes: file descriptors have been initialized
-    # Effects: writes to the file system
-    # Throws: Nothing
-
-    global mutantAssocKey
-
-    mutantCellLineKey = 0
-
-    results = db.sql('''
-        select _CellLine_key from ALL_CellLine
-        where isMutant = 1 and _Derivation_key is not null
-        and cellLine = '%s'
-        ''' % (mutantCellLine) , 'auto')
-
-    for r in results:
-        mutantCellLineKey = r['_CellLine_key']
-
-    fpMutantFile.write('%d|%s|%s|%s|%s|%s|%s\n' \
-                % (mutantAssocKey, alleleKey, mutantCellLineKey, \
-                createdByKey, createdByKey, loaddate, loaddate))
-
-    mutantAssocKey += 1
-
-    return 0
 
 #
 # MAIN
