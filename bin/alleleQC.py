@@ -305,6 +305,7 @@ def init ():
 # Assumes: 
 # Effects: queries a database, modifies global variables
 #
+
 def loadLookups(): 
     global alleleSymbolLookup, geneIdLookup, userLookup, statusLookup, typeLookup, inheritModeLookup
     global transmissionLookup, collectionLookup, referenceLookup, pclLookup
@@ -746,14 +747,16 @@ def closeFiles ():
 
 # end closeFiles) -------------------------------
 
-def runQcChecks():
     #
     # Purpose: run all QC checks
     # Returns: Nothing
     # Assumes: file descriptors have been initialized
-    # Effects: writes reports to the file system, writes load ready file to file system
+    # Effects: writes reports and the load ready file to file system
     # Throws: Nothing
     #
+
+def runQcChecks():
+    
     global lineNumberSet
  
     skipLine = 0
@@ -967,9 +970,12 @@ def runQcChecks():
             mclKeys = ''
             derivationKey = ''
 
-            # We have a TAR/GT/EM allele that passes QC thus far - now find the mcl or
-            # correct derivation, to create NS MCL, using the MCL/PCL/SOO rules
-            if alleleType in alleleTypeList:
+            # We have a TAR/GT/EM allele that passes QC thus far AND mcls and
+            # pcl are specified (EM can have null mcl/pcl in which case there 
+            # will be no mcl association/creation)
+            # now find the mcl or correct derivation, to create NS MCL, 
+            # using the MCL/PCL/SOO rules
+            if alleleType in alleleTypeList and mcls and pcl:
                 # attempt to resolve the mcls for this allele
                 # if resolvedMcls empty, we could not resolve so skip this allele
                 resolvedMcls = qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum) 
@@ -1003,11 +1009,24 @@ def runQcChecks():
 
 # end runQcChecks() -------------------------------
 
+#
+# Purpose: QC the MCL and a) find MCL in database to associated with the 
+#       allele or find the derivation in the database with which to create
+#       a new Not Specified MCL
+# Returns:  a list of MutantCellLine objects
+# Assumes: Nothing
+# Effects:  queries a database
+# Throws: Nothing
+#
+
 def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
 
+    # a list of MutantCellLine objects (see class)
     resolvedMclList = []
+
     #print(CRT + CRT + 'In qcMCL')
     #print('in qcMCL  lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+
     for m in str.split(mcls, '|'):
         #print('m: %s' % m)
         if m != NS: # rows 10-12 in the matrix
