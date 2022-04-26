@@ -167,6 +167,17 @@ ARC_FILE=`basename ${INPUT_FILE_QC}`.${TIMESTAMP}
 cp -p ${INPUT_FILE_QC} ${ARCHIVEDIR}/${ARC_FILE}
 
 #
+# set permissions on the load ready file so curator run
+# of QC may write to it
+#
+
+if [ -f ${INPUT_FILE_QC} ]
+then
+    chmod 664 ${INPUT_FILE_QC}
+    chgrp mgi ${INPUT_FILE_QC}
+fi
+
+#
 # Touch the "lastrun" file to note when the load was run.
 #
 if [ ${STAT} = 0 ]
