@@ -791,7 +791,7 @@ def runQcChecks():
         #
         # check required columns
         #
-        if aSym == '' or aName == '' or geneID == '' or user == '' or transmission == '' or soo == '' or pcl == '' or mcls == '':
+        if aSym == '' or aName == '' or geneID == '' or user == '' or transmission == '' or soo == '':
             # REPORT required fields that are empty
             reqColumnList.append('%s  %s' % (lineNum, line))
             skipLine = 1
