@@ -45,7 +45,7 @@ export INPUT_FILE_DEFAULT INPUT_FILE_QC
 
 # Full path to QC script
 #
-LOAD_QC_SH=${MRKCOORDLOAD}/bin/mrkcoordQC.sh
+LOAD_QC_SH=${CURATORALLELELOAD}/bin/alleleQC.sh
 
 export LOAD_QC_SH
 
