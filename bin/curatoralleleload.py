@@ -501,6 +501,9 @@ def processSubtypes(subtypes, alleleKey, lineNum):
 def processMutations(molMuts, alleleKey, lineNum):
     global alleleMutationKey
 
+    # No molecular mutations to process
+    if molMuts == '':
+        return 0
     for m in molMuts.split('|'):
             #print('lineNum: %s mutation: %s' % (lineNum, m))
             # _vocab_key = 36 (Allele Molecular Mutation)
@@ -664,7 +667,7 @@ def processFile():
 
         # if either mclKeyList or derivationKey have data, then process the MCLs
         if mclKeyList or derivationKey:
-            print('mclKeyList: %s derivationKey: %s' % (mclKeyList, derivationKey))
+            #print('mclKeyList: %s derivationKey: %s' % (mclKeyList, derivationKey))
             processMCLs(mclKeyList, derivationKey, strainOfOriginKey, alleleKey, createdByKey)
  
         accKey += 1
