@@ -78,6 +78,7 @@ import db
 import mgi_utils
 import loadlib
 import sourceloadlib
+import subprocess
 
 # globals
 
@@ -393,7 +394,16 @@ def bcpFiles():
 
     for bcpCmd in [bcp1, bcp2, bcp3, bcp4, bcp5, bcp6, bcp7, bcp8, bcp9]:
         fpDiagFile.write('%s\n' % bcpCmd)
-        os.system(bcpCmd)
+        result = subprocess.run(bcpCmd, shell=True, capture_output=True, text=True)
+        stdout = result.stdout
+        stderr = result.stderr
+        statusCode = result.returncode
+
+        if statusCode != 0:
+            msg = '%s statusCode: %s stderr: %s%s' % (bcpCmd, statusCode, stderr, CRT)
+            fpDiagFile.write(msg)
+            return statusCode
+
 
     # update all_allele_seq auto-sequence
     db.sql(''' select setval('all_allele_seq', (select max(_Allele_key) from ALL_Allele)) ''', None)
@@ -689,23 +699,17 @@ def processFile():
 #
 # MAIN
 #
-rc = 0
 if initialize() != 0:
-    rc = 1
+    exit(1, 'Error in  initialize \n' )
 
 if setPrimaryKeys() != 0:
-    rc = 1
+    exit(1, 'Error in setPrimaryKeys \n')
 
 if processFile() != 0:
-    rc = 1
+    exit(1, 'Error in processFile \n')
 
 if bcpFiles() != 0:
-    rc = 1
+    exit(1, 'Error in bcpFiles')
 
-fpDiagFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
-fpDiagFile.close()
-fpErrorFile.write('\n\nEnd Date/Time: %s\n' % (mgi_utils.date()))
-fpErrorFile.close()
-
-sys.exit(rc)
+exit(0, 'curatoralleleload successful')
 
