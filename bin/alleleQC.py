@@ -146,7 +146,11 @@ reqColumnList = []
 tarGtMissingMclPclList = []
 emMissingMclPclList = []
 nonTARGTEMwithMclPclList = []
-dupeAlleleList = []
+alleleInDbList = []
+
+# allele symbols seen thus far with their line number
+inputAlleleDict = {}
+
 badGeneIdList = []
 badUserList = []
 badStatusList = []
@@ -481,14 +485,32 @@ def writeReport():
     #
     fpQcRpt.write( str.center('Warning QC - these will be loaded',80) + CRT)
 
-    if len(dupeAlleleList):
+    if len(alleleInDbList):
         hasWarnErrors = 1
         fpQcRpt.write(CRT + CRT + str.center('Allele Symbols already in the DB (case sensitive)',60) + CRT)
         fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
         fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
-        fpQcRpt.write(''.join(dupeAlleleList))
-        fpQcRpt.write(CRT + 'Total: %s' % len(dupeAlleleList))
-    
+        fpQcRpt.write(''.join(alleleInDbList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(alleleInDbList))
+
+    # iterate thru the dictionary of all symbols/line numbers in input
+    found = 0
+    dupeSymCount = 0
+    for a in inputAlleleDict: # contains all alleles in input, with a list of their line numbers
+        if len(inputAlleleDict[a]) > 1:  # we only want to report if the symbol found more than once
+            if found == 0: # print the report section header if we found
+                fpQcRpt.write(CRT + CRT + str.center('Allele Symbols duplicated in the input file (case sensitive)',60) + CRT)
+                fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+                fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+                found = 1
+            hasWarnErrors = 1
+            fpQcRpt.write('%s    ' % (a))
+            fpQcRpt.write(', '.join(inputAlleleDict[a]))
+            fpQcRpt.write(CRT)
+            dupeSymCount +=1
+    if found > 0:
+        fpQcRpt.write(CRT + 'Total: %s' % dupeSymCount)
+
     fpQcRpt.write(CRT + CRT)
     fpQcRpt.write( str.center('Report/Skip QC - these will be reported and skipped',80) + CRT)
 
@@ -721,11 +743,12 @@ def writeReport():
         fpQcRpt.write(''.join(sooNEdbStrainList))
         fpQcRpt.write(CRT + 'Total: %s' % len(sooNEdbStrainList))
 
-    fpQcRpt.write(CRT + CRT + 'sorted list of line numbers reported: ' + CRT)
-    sortedList =  list(lineNumberSet)
-    sortedList.sort()
-    s = [str(i) for i in sortedList]
-    fpQcRpt.write(', '.join(s))
+    # for development - helps to determine which lines in test file are being reported
+    #fpQcRpt.write(CRT + CRT + 'sorted list of line numbers reported: ' + CRT)
+    #sortedList =  list(lineNumberSet)
+    #sortedList.sort()
+    #s = [str(i) for i in sortedList]
+    #fpQcRpt.write(', '.join(s))
     return
 
 # end writeReport() -------------------------------
@@ -757,13 +780,13 @@ def closeFiles ():
 
 def runQcChecks():
     
-    global lineNumberSet
- 
+    global lineNumberSet 
+
     skipLine = 0
     junk = fpInput.readline() # header
     line = fpInput.readline()
     lineNum = 1
-
+   
     while line:
 
         # flag so we don't report lines with bad allele type n the Non TAR/GT/EM Allele
@@ -832,8 +855,12 @@ def runQcChecks():
         # verify fields that are required in the database and in file
         #
         if aSym in alleleSymbolLookup:
-            dupeAlleleList.append('%s  %s' % (lineNum, line))
+            alleleInDbList.append('%s  %s' % (lineNum, line))
             lineNumberSet.add(lineNum)
+
+        if aSym not in inputAlleleDict:
+            inputAlleleDict[aSym] = []
+        inputAlleleDict[aSym].append(str(lineNum))
 
         if geneID not in geneIdLookup:
             badGeneIdList.append('%s  %s' % (lineNum, line))
@@ -940,9 +967,6 @@ def runQcChecks():
                             mismatchedGeneIDList.append('%s  %s' % (lineNum, line))
                             skipLine = 1
                             lineNumberSet.add(lineNum)
-                            #print('yes marker mismatch')
-                        #else:
-                        #    print('no marker mismatch')
         # can have multiple
         if subtypes != '':
             for s in str.split(subtypes, '|'):
@@ -1030,7 +1054,7 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
     for m in str.split(mcls, '|'):
         #print('m: %s' % m)
         if m != NS: # rows 10-12 in the matrix
-            print('mcl != NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+            #print('mcl != NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
             # lookup PCL for MCL in ALL_CellLine_Derivation_view
             # if same as incoming PCL and incoming strain, QC passes
             sql = '''select c._cellline_key, v.parentcellline, v.parentcelllinestrain
@@ -1065,14 +1089,14 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
                 
                 # otherwise use the incoming named mcl
                 else:
-                    print('mcl != NS - incoming mcl used')
+                    #print('mcl != NS - incoming mcl used')
                     mclResolved = MutantCellLine()
                     mclResolved.mclKeyList.append(str(mclKey))
                     resolvedMclList.append(mclResolved)
                 
         else: # m == NS
             if pcl not in (NS, OSN):
-                print('mcl=NS, pcl not in (NS, OSN): lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+                #print('mcl=NS, pcl not in (NS, OSN): lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s' % (lineNum, aSym, mcls, pcl, soo, alleleType))
                 # find the PCL
                 results = db.sql('''select c._cellline_key as _parentcellline_key, c.cellline as parentcellline, c.celllinestrain as parentcelllinestrain
                     from all_cellline_view c
@@ -1094,17 +1118,17 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
                          and v.creator = '%s'
                         and v._derivationtype_key = t._term_key
                         and t.term = '%s' ''' % (pclKey, NS, alleleType)
-                    print(sql + '\n')
+                    #print(sql + '\n')
                     results = db.sql(sql, 'auto')
-                    print(results)
-                    print(CRT + CRT)   
+                    #print(results)
+                    #print(CRT + CRT)   
                     mclToCreate = MutantCellLine()
                     mclToCreate.derivationKey = results[0]['_derivation_key']
                     resolvedMclList.append(mclToCreate)
             elif pcl == NS:
                 # no checking needed here - just have to determine the correct Derivation to create the 
                 # new NS MCL with
-                print ('mcl NS, pcl NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+                #print ('mcl NS, pcl NS: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
                 # find the pcl
                 pclKeyToUse = 0
 
@@ -1122,10 +1146,10 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
                         and v.creator = '%s'
                         and v._derivationtype_key = t._term_key
                         and t.term = '%s' ''' % (pclKeyToUse, NS, alleleType)
-                print(sql + '\n')
+                #print(sql + '\n')
                 results = db.sql(sql, 'auto')
-                print(results)
-                print(CRT + CRT)
+                #print(results)
+                #print(CRT + CRT)
                 mclToCreate = MutantCellLine()
                 mclToCreate.derivationKey = results[0]['_derivation_key']
                 resolvedMclList.append(mclToCreate)
@@ -1134,7 +1158,7 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
             elif pcl == OSN:
                 # no checking needed here - just have to determine the correct Derivation to create the
                 # new NS MCL with  
-                print ('mcl NS, pcl OSN: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
+                #print ('mcl NS, pcl OSN: lineNum: %s allele symbol: %s, mcls: %s pcl: %s soo: %s alleleType: %s ' % (lineNum, aSym, mcls, pcl, soo, alleleType))
                 # find the pcl
                 pclKeyToUse = 0
 
@@ -1155,10 +1179,10 @@ def qcMCL(aSym, mcls, pcl, soo, alleleType, line, lineNum):
                         and v.creator = '%s'
                         and v._derivationtype_key = t._term_key
                         and t.term = '%s' ''' % (pclKeyToUse, NS, alleleType)
-                print(sql + '\n')
+                #print(sql + '\n')
                 results = db.sql(sql, 'auto')
-                print(results)
-                print(CRT + CRT)
+                #print(results)
+                #print(CRT + CRT)
                 mclToCreate = MutantCellLine()
                 mclToCreate.derivationKey = results[0]['_derivation_key']
                 # wait - are we creating a mcl for this?

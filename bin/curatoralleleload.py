@@ -350,7 +350,7 @@ def setPrimaryKeys():
 
     results = db.sql(''' select nextval('mgi_synonym_seq')as maxKey ''', 'auto')
     synonymKey = results[0]['maxKey']
-    print('synonymKey: %s' % synonymKey)
+    
     results = db.sql(''' select nextval('all_allele_mutation_seq') as maxKey ''', 'auto')
     alleleMutationKey = results[0]['maxKey']
 
