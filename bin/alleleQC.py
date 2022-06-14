@@ -125,7 +125,7 @@ database = os.environ['MGD_DBNAME']
 
 # Lookups
 alleleSymbolLookup = []
-geneIdLookup = []
+geneIdLookup = {}
 userLookup = []
 statusLookup = []
 typeLookup = []
@@ -152,6 +152,8 @@ alleleInDbList = []
 inputAlleleDict = {}
 
 badGeneIdList = []
+badAlleleSymbolList1 = []
+badAlleleSymbolList2 = []
 badUserList = []
 badStatusList = []
 badTypeList = []
@@ -323,7 +325,7 @@ def loadLookups():
         alleleSymbolLookup.append(r['symbol'])
 
     # Gene ID
-    results = db.sql('''select accid
+    results = db.sql('''select a.accid, m.symbol
                 from acc_accession a, mrk_marker m
                 where a._mgitype_key = 2
                 and a._logicaldb_key = 1
@@ -332,7 +334,7 @@ def loadLookups():
                 and m._marker_status_key in (1, 3)
                 and m._organism_key = 1''', 'auto')
     for r in results:
-        geneIdLookup.append(r['accid'])
+        geneIdLookup[r['accid']] = r['symbol']
 
     # User
     results = db.sql('''select login
@@ -566,7 +568,23 @@ def writeReport():
         fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
         fpQcRpt.write(''.join(badGeneIdList))
         fpQcRpt.write(CRT + 'Total: %s' % len(badGeneIdList))
-        
+
+    if len(badAlleleSymbolList1):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('Marker symbol not in Allele symbol and Allele not Transgenic',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s  %-20s%s' % ('Line#','MSymbol', 'Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(badAlleleSymbolList1))
+        fpQcRpt.write(CRT + 'Total: %s' % len(badAlleleSymbolList1))
+
+    if len(badAlleleSymbolList2):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('Allele symbol must either have both < and > or neither',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(badAlleleSymbolList2))
+        fpQcRpt.write(CRT + 'Total: %s' % len(badAlleleSymbolList2))
+
     if len(badUserList):
         hasSkipErrors = 1
         fpQcRpt.write(CRT + CRT + str.center('Invalid User Login',60) + CRT)
@@ -854,6 +872,15 @@ def runQcChecks():
         # 
         # verify fields that are required in the database and in file
         #
+
+        # if neither < or > OK, if both < and > OK, otherwise report
+        if (aSym.find('<') == -1 and aSym.find('>') == -1) or (aSym.find('<') != -1 and aSym.find('>') != -1):
+            pass
+        else:
+            badAlleleSymbolList2.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+
         if aSym in alleleSymbolLookup:
             alleleInDbList.append('%s  %s' % (lineNum, line))
             lineNumberSet.add(lineNum)
@@ -866,10 +893,19 @@ def runQcChecks():
             badGeneIdList.append('%s  %s' % (lineNum, line))
             skipLine = 1
             lineNumberSet.add(lineNum)
+
+        # if the marker symbol is not part of the allele symbol and allele type is not transgenic
+        if aSym.find(geneIdLookup[geneID]) == -1 and alleleType != 'Transgenic':
+            # report and skip
+            badAlleleSymbolList1.append('%s  %s  %s\n' % (lineNum, geneIdLookup[geneID], line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+
         if user not in userLookup:
             badUserList.append('%s  %s' % (lineNum, line))
             skipLine = 1            
             lineNumberSet.add(lineNum)
+        
         #
         # verify fields required in the database, but when null have defaults
         #

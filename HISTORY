@@ -1,3 +1,10 @@
+TAG: curatoralleleload-6-0-20-5
+DATE:  06/14/2022
+STAFF: sc
+CHANGES: CREAM project - new QC checks for 
+1. Marker symbol not in Allele symbol and Allele not Transgenic
+2. Allele symbol must either have both < and > or neither
+ 
 TAG: curatoralleleload-6-0-20-4
 DATE:  06/09/2022
 STAFF: sc
