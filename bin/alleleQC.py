@@ -88,6 +88,9 @@ OSN = 'Other (see notes)'
 NA = 'Not Applicable'  # inheritance mode default
 RES = 'Reserved'       # allele status default
 
+# the 'Tg holder' markerID
+tgHolder = 'MGI:2158399'
+
 # strains with derivations in the db
 one29 = '129'
 one29SSvEv = '129S/SvEv'
@@ -152,6 +155,7 @@ alleleInDbList = []
 inputAlleleDict = {}
 
 badGeneIdList = []
+badTgHolderList = []
 badAlleleSymbolList1 = []
 badAlleleSymbolList2 = []
 badUserList = []
@@ -161,6 +165,10 @@ badInheritModeList = []
 # inheritance mode is 'Other (see notes)' and there is not general note
 imOSNnoGenNoteList = [] 
 badTransList = []
+transGermlineNoRefList = []
+transNotGermlineWithRefList = []
+noMclTransNotNAList = []
+mclTransIsNAList = []
 badCollectionList = []
 noOrigRefList = []
 badOrigRefList = []
@@ -569,6 +577,14 @@ def writeReport():
         fpQcRpt.write(''.join(badGeneIdList))
         fpQcRpt.write(CRT + 'Total: %s' % len(badGeneIdList))
 
+    if len(badTgHolderList):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('Marker is "Tg holder" (MGI:2158399) and Allele Status != "Reserved" OR Allele Status != "In Progress"',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(badTgHolderList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(badTgHolderList))
+
     if len(badAlleleSymbolList1):
         hasSkipErrors = 1
         fpQcRpt.write(CRT + CRT + str.center('Marker symbol not in Allele symbol and Allele not Transgenic',60) + CRT)
@@ -633,6 +649,38 @@ def writeReport():
         fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
         fpQcRpt.write(''.join(badTransList))
         fpQcRpt.write(CRT + 'Total: %s' % len(badTransList))
+
+    if len(transGermlineNoRefList):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('Allele Transmission is Germline or Chimeric and Transmission Reference does not Exist',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(transGermlineNoRefList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(transGermlineNoRefList))
+
+    if len(transNotGermlineWithRefList):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('Allele Transmission is not Germline or Chimeric and Transmission Reference does Exist',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(transNotGermlineWithRefList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(transNotGermlineWithRefList))
+
+    if len(noMclTransNotNAList):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('No MCL and Allele Transmission != "Not Applicable"',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(noMclTransNotNAList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(noMclTransNotNAList))
+
+    if len(mclTransIsNAList):
+        hasSkipErrors = 1
+        fpQcRpt.write(CRT + CRT + str.center('MCL and Allele Transmission is "Not Applicable"',60) + CRT)
+        fpQcRpt.write('%-12s  %-20s%s' % ('Line#','Line', CRT))
+        fpQcRpt.write(12*'-' + '  ' + 20*'-' + CRT)
+        fpQcRpt.write(''.join(mclTransIsNAList))
+        fpQcRpt.write(CRT + 'Total: %s' % len(mclTransIsNAList))
 
     if len(badCollectionList):
         hasSkipErrors = 1
@@ -894,6 +942,11 @@ def runQcChecks():
             skipLine = 1
             lineNumberSet.add(lineNum)
 
+        if geneID in geneIdLookup and geneID == tgHolder and alleleStatus != '' and alleleStatus not in ['In Progress', 'Reserved']:
+            badTgHolderList.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+
         # if the marker symbol is not part of the allele symbol and allele type is not transgenic
         if aSym.find(geneIdLookup[geneID]) == -1 and alleleType != 'Transgenic':
             # report and skip
@@ -924,6 +977,23 @@ def runQcChecks():
                 lineNumberSet.add(lineNum)
         if transmission != '' and transmission not in transmissionLookup:
             badTransList.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+        if transmission != '' and (transmission == 'Germline' or transmission == 'Chimeric') and transRef == '':
+            transGermlineNoRefList.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+        if transmission != '' and transmission != 'Germline' and transmission != 'Chimeric' and transRef != '':
+            transNotGermlineWithRefList.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+        if not mcls and transmission != 'Not Applicable':
+            noMclTransNotNAList.append('%s  %s' % (lineNum, line))
+            skipLine = 1
+            lineNumberSet.add(lineNum)
+            lineNumberSet.add(lineNum)
+        if mcls and transmission == 'Not Applicable':
+            mclTransIsNAList.append('%s  %s' % (lineNum, line))
             skipLine = 1
             lineNumberSet.add(lineNum)
 
