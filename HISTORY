@@ -1,3 +1,8 @@
+TAG: curatoralleleload-6-0-20-7
+DATE:  06/27/2022
+STAFF: sc
+CHANGES: add call to ACC_setMax - to update ACC_AccessionMax MGI ID numericPart
+
 TAG: curatoralleleload-6-0-20-6
 DATE:  06/17/2022
 STAFF: sc
