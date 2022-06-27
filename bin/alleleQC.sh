@@ -46,9 +46,7 @@
 #      4) Update path to QC reports if this is not a 'live' run 
 #	     i.e. curators running the scripts 
 #      5) Initialize the log file
-#      6) creates table in tempdb for the input file
-#      7) Call alleleQC.py to generate the QC report
-#      8) drops the tempdb table
+#      6) Call alleleQC.py to generate the QC report
 #
 #
 #  Notes:  None
