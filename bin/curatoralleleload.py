@@ -422,6 +422,10 @@ def bcpFiles():
     # update mgi_synonym_seq auto-sequence
     db.sql(''' select setval('mgi_synonym_seq', (select max(_Synonym_key) from MGI_Synonym)) ''', None)
 
+    #
+    # Update the AccessionMax value
+    #
+    db.sql('select * from ACC_setMax(%d)' % (lineNum), None)
 
     db.commit()
 
@@ -560,7 +564,7 @@ def processFile():
     # Effects: exits if the line does not have 23 columns
     # Throws: Nothing
 
-    global alleleKey, accKey, mgiKey 
+    global alleleKey, accKey, mgiKey, lineNum
 
     lineNum = 0
     # For each line in the input file
