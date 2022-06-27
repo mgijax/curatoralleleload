@@ -121,11 +121,6 @@ qcRptFile = os.environ['QC_RPT']
 hasSkipErrors = 0
 hasWarnErrors = 0
 
-# for bcp
-bcpin = '%s/bin/bcpin.csh' % os.environ['PG_DBUTILS']
-server = os.environ['MGD_DBSERVER']
-database = os.environ['MGD_DBNAME']
-
 # Lookups
 alleleSymbolLookup = []
 geneIdLookup = {}
