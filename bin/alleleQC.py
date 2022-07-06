@@ -401,7 +401,8 @@ def loadLookups():
     # Strain
 
     results = db.sql('''select strain
-                from prb_strain''', 'auto')
+                from prb_strain
+                where private = 0''', 'auto')
     for r in results:
         strainLookup.append(r['strain'])
 
