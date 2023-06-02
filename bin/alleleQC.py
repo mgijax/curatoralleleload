@@ -932,7 +932,7 @@ def runQcChecks():
         if aSym not in inputAlleleDict:
             inputAlleleDict[aSym] = []
         inputAlleleDict[aSym].append(str(lineNum))
-
+        print('geneID: %s' % geneID)
         if geneID not in geneIdLookup:
             badGeneIdList.append('%s  %s' % (lineNum, line))
             skipLine = 1
@@ -944,7 +944,7 @@ def runQcChecks():
             lineNumberSet.add(lineNum)
 
         # if the marker symbol is not part of the allele symbol and allele type is not transgenic
-        if aSym.find(geneIdLookup[geneID]) == -1 and alleleType != 'Transgenic':
+        if geneID in geneIdLookup and aSym.find(geneIdLookup[geneID]) == -1 and alleleType != 'Transgenic':
             # report and skip
             badAlleleSymbolList1.append('%s  %s  %s\n' % (lineNum, geneIdLookup[geneID], line))
             skipLine = 1
