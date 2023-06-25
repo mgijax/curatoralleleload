@@ -93,6 +93,8 @@ BCP_COMMAND = os.getenv('PG_DBUTILS') + '/bin/bcpin.csh'
 # Default is 'false'
 DEBUG = os.getenv('LOG_DEBUG')
 
+CRT = '\n'
+
 #
 # File descriptors
 #
